@@ -3,41 +3,62 @@ from recommendation_module import compute_user_similarity, recommend_items
 from evaluation_module import evaluate_recommendations
 from self_improvement_module import adapt_recommendation_strategy
 import firebase_module
+from firebase_module import get_user_feedback, save_user_feedback
+from data_loader import load_data
 
+# Initialize Firebase
 firebase_module.initialize_firebase()
 
-# Dashboard Title
+# Title
 st.title('AI Recommendation System Dashboard')
 
-# User ID
-user_id = st.text_input('Enter User ID:')
+# Load or compute user-item matrix and similarity dataframe
+@st.cache_data
+def load_similarity_data():
+    user_item_matrix, similarity_df = compute_user_similarity()
+    return user_item_matrix, similarity_df
 
-if user_id := st.session_state.get('user_id'):
-    st.write(f"Logged in as: {user_id}")
+user_item_matrix, similarity_df = load_similarity_data()
 
-# Input for user to provide feedback or queries
-user_query = st.text_area("Enter your query or feedback:")
+# User ID input
+user_id = st.text_input('Enter User ID:', 'user123')
 
-if st.button("Submit"):
-    if user_query:
-        firebase_module.save_user_feedback(user_id, user_query)
-        st.success('Feedback successfully saved!')
+# Chat interface for user feedback
+with st.container():
+    st.write("### Chat with the Recommendation AI")
+    feedback = st.chat_input("Provide your feedback or ask for recommendations")
 
-# Retrieve feedback history from Firebase
-feedback_history = firebase_module.get_user_feedback(user_id)
+    if feedback:
+        with st.chat_message("user"):
+            st.write(feedback)
+        
+        # Save user feedback to Firebase
+        from firebase_module import save_user_feedback
+        save_user_feedback(user_id, feedback)
+        st.sidebar.success('Feedback successfully saved to Firebase!')
 
-# Display previous feedback or chat history
-st.subheader("Chat and Feedback History")
+# Retrieve feedback history
+from firebase_module import get_user_feedback
+feedback_history = get_user_feedback(user_id)
+
+# Display chat history
 if feedback_history:
-    for idx, feedback in enumerate(feedback_history, 1):
-        st.chat_message("user").write(feedback)
+    for fb in feedback_history:
+        with st.chat_message("user"):
+            st.write(f"{fb}")
 
-# Generate recommendations based on feedback
+# Generate and display recommendations
 recommendations = recommend_items(user_id, user_item_matrix, similarity_df)
-st.write("Recommended items:", recommendations)
 
+with st.chat_message("assistant"):
+    st.write("Here are your recommended items:")
+    for item in recommendations:
+        st.write(f"- {item}")
+
+# Evaluate recommendations
 evaluation = evaluate_recommendations(recommendations)
-st.write("Evaluation results:", evaluation)
+st.sidebar.write("Recommendation Evaluation:", evaluation)
 
-adapted_strategy = adapt_recommendation_strategy(evaluation)
-st.write("Strategy adapted to:", adapted_strategy)
+# Self-improvement based on user feedback and evaluations
+adapted_strategy = adapt_recommendation_strategy(user_id, feedback, recommendations)
+st.sidebar.info(f"Adapted Recommendation Strategy: {adapt_recommendation_strategy}")
