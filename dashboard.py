@@ -1,39 +1,43 @@
 import streamlit as st
 import pandas as pd
-from recommendation_module import recommend_items, evaluate_recommendations
-from self_improvement_module import adapt_recommendation_strategy
-import firebase_module
-from firebase_module import get_user_feedback, save_user_feedback
+from recommendation_module import recommend_items
+from firebase_module import initialize_firebase, get_user_feedback, save_user_feedback
 from data_loader import load_data
 
 # Initialize Firebase
-firebase_module.initialize_firebase()
+initialize_firebase()
 
-# Load data
+# Load data (cached for efficiency)
 user_item_matrix, similarity_df = load_data()
 
-# User authentication or selection
-user_id = st.text_input('Enter User ID:')
+st.title("🤖 AI Recommendation Assistant")
 
-# User chat interface
-feedback = st.chat_input("Share your feedback:")
-if feedback:
-    save_user_feedback(user_id, feedback)
-    st.chat_message("user").write(feedback)
+# Initialize session state for chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# Display feedback history
-feedback_history = get_user_feedback(user_id)
-if feedback_history := feedback_history:
-    for entry in feedback_history:
-        st.chat_message("user").write(entry)
+# Display previous chat history
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-# Generate recommendations
-recommendations = recommend_items(user_id, user_item_matrix, similarity_df)
-st.write("Recommended items:", recommendations)
+# Chat input
+prompt = st.chat_input("How can I assist you today?")
+if prompt:
+    # Append user message
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-# Evaluate recommendations
-evaluation = evaluate_recommendations(recommendations)
-st.write(f"Evaluation of recommendations: {evaluation}")
+    # Generate AI response (simple placeholder for now)
+    with st.chat_message("assistant"):
+        user_id = "user_demo"  # For demo purposes, ideally dynamic based on login/session
+        recommendations = recommend_items(user_id, user_item_matrix, similarity_df)
+        ai_response = f"I recommend the following items: **{', '.join(recommendations)}**"
+        st.markdown(ai_response)
 
-# Self-improvement module
-adapt_recommendation_strategy(user_id, evaluation)
+    # Save AI response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": ai_response})
+
+    # Optionally, save feedback to Firebase
+    save_user_feedback(user_id, prompt)

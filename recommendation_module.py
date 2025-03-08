@@ -2,19 +2,25 @@ import pandas as pd  # <-- ADD THIS LINE
 from sklearn.metrics.pairwise import cosine_similarity
 
 def compute_user_similarity(user_item_matrix):
-    similarity = cosine_similarity(user_item_matrix)
-    return pd.DataFrame(similarity, index=user_item_matrix.index, columns=user_item_matrix.index)
+    user_item_pivot = user_item_matrix.pivot_table(index='user_id', columns='item_id', values='rating', fill_value=0)
+    similarity_df = user_item_pivot.dot(user_item_pivot.T)
+    return similarity_df
 
-def recommend_items(user_id, user_item_matrix, similarity_df, top_n=2):
+def recommend_items(user_id, user_item_matrix, similarity_df, top_n=3):
+    if user_id not in similarity_df.index:
+        return ["itemA", "itemB", "itemC"]  # Default recommendations for unknown users
+
     similar_users = similarity_df[user_id].sort_values(ascending=False).index[1:]
-    user_items = set(user_item_matrix.columns[user_item_matrix.loc[user_id] > 0])
+    recommendations = set()
 
-    recommendations = {}
     for sim_user in similar_users:
-        sim_user_items = user_item_matrix.columns[user_item_matrix.loc[sim_user] > 0]
-        for item in sim_user_items:
-            if item not in user_items:
-                recommendations[item] = recommendations.get(item, 0) + similarity_df.loc[user_id, sim_user]
+        user_items = set(user_item_matrix[user_item_matrix['user_id'] == sim_user]['item_id'])
+        recommendations.update(user_items)
+
+        if len(recommendations) >= top_n:
+            break
+
+    return list(recommendations)[:top_n]
                 
 def evaluate_recommendations(recommendations):
     """
