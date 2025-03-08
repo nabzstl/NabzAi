@@ -1,0 +1,6 @@
+2025-03-08 04:34:12.724507 - Cycle: 1, User: 1, Recommendations: ['C', 'D'], Score: 4.5, Next Top_n: 2
+2025-03-08 04:34:12.728507 - Cycle: 2, User: 1, Recommendations: ['C'], Score: 2.0, Next Top_n: 1
+2025-03-08 04:34:12.731508 - Cycle: 3, User: 1, Recommendations: ['C', 'D'], Score: 4.5, Next Top_n: 2
+2025-03-08 04:35:29.753445 - Cycle: 1, User: 1, Recommendations: ['C'], Score: 5.0, Next Top_n: 2
+2025-03-08 04:35:29.763438 - Cycle: 2, User: 1, Recommendations: ['C'], Score: 2.0, Next Top_n: 1
+2025-03-08 04:35:29.769438 - Cycle: 3, User: 1, Recommendations: ['C'], Score: 4.0, Next Top_n: 2
