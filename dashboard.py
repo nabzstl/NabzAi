@@ -7,31 +7,31 @@ from data_loader import load_data
 # Initialize Firebase
 initialize_firebase()
 
-# Load data (cached for efficiency)
+# Load Data
 user_item_matrix, similarity_df = load_data()
 
 st.title("🤖 AI Recommendation Assistant")
 
-# User input
-user_input = st.text_input("Say something to get recommendations:")
+# Get user input
+user_input = st.text_input("Say something...")
 
 if user_input:
-    recommendations = recommend_items(user_input, user_item_matrix, similarity_df)
+    user_id = 'test_user'
+    
+    # Provide recommendations based on user input
+    recommendations = recommend_items(user_id, user_item_matrix, similarity_df)
+    st.write(f"I recommend the following items: {', '.join(recommendations)}")
 
-    if recommendations == ["No recommendations found (user not in database)."]:
-        st.write(recommendations[0])
-    else:
-        st.write(f"I recommend the following items: {', '.join(recommendations)}")
-
-# User feedback collection
-with st.expander("Provide Feedback"):
-    feedback_text = st.text_area("Your feedback:")
-    if st.button("Submit Feedback"):
-        save_user_feedback(user_input, feedback=feedback_text)
-        st.success("Thanks for your feedback!")
+    # Optional: Save feedback
+    feedback = {"input": user_input, "recommendations": recommendations}
+    save_user_feedback(user_id, feedback)
 
 # Display feedback (optional, for debugging or transparency)
-feedback_df = get_user_feedback(user_id='test_user')
-if not feedback_df.empty:
+feedback_data = get_user_feedback(user_id='test_user')
+
+if feedback_data:
     st.subheader("User Feedback")
+    feedback_df = pd.DataFrame.from_dict(feedback_data, orient='index')
     st.write(feedback_df)
+
+st.success("App loaded successfully!")
