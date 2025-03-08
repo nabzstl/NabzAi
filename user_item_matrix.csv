@@ -1,6 +1,4 @@
-user_id,item_id,rating
-user1,item1,5
-user1,itemA,4
-user1,itemB,3
-user2,itemA,5
-user2,itemB,2
+user,itemA,itemB,itemC
+user1,1,0,1
+user2,0,1,1
+userX,0,0,1
