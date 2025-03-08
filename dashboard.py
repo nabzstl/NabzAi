@@ -12,33 +12,8 @@ user_item_matrix, similarity_df = load_data()
 
 st.title("🤖 AI Recommendation Assistant")
 
-# User input
 user_input = st.text_input("Enter your user ID:")
 
-if user_input := user_input.strip():
-    try:
-        # Fetch recommendations based on provided user_id
-        recommendations = recommend_items(
-            user_id=user_input,
-            user_item_matrix=user_item_matrix,
-            similarity_df=similarity_df
-        )
-
-        st.write(f"I recommend the following items: {', '.join(recommendations)}")
-
-        # Save feedback to Firebase
-        feedback = {
-            "recommended_items": recommendations
-        }
-        save_user_feedback(user_input, feedback_data=feedback)
-
-        # Displaying user feedback
-        feedback_data = get_user_feedback(user_input)
-        if feedback_data:
-            feedback_df = pd.DataFrame([feedback_data])
-            st.subheader("User Feedback")
-            st.write(feedback_df)
-            
 if user_input:
     try:
         recommendations = recommend_items(
@@ -46,17 +21,22 @@ if user_input:
             user_item_matrix=user_item_matrix,
             similarity_df=similarity_df
         )
-        st.write(f"I recommend the following items: {', '.join(recommendations)}")
-        
-        # Save feedback to Firebase
-        feedback = {"recommended_items": recommendations}
-        save_user_feedback(user_input, feedback)
-
+        st.write(f"Recommendations for {user_input}: {', '.join(recommendations)}")
     except KeyError:
-        st.warning("Your user ID was not found, showing general recommendations.")
-        recommendations = user_item_matrix.sum().sort_values(ascending=False).head(5).index.tolist()
-        st.write(f"Popular recommendations: {', '.join(recommendations)}")
+        st.warning("User ID not found. Showing popular recommendations instead.")
+        popular_recommendations = user_item_matrix.sum().sort_values(ascending=False).head(5).index.tolist()
+        st.write(f"Popular recommendations: {', '.join(popular_recommendations)}")
 
+# Feedback section
+with st.form("feedback_form"):
+    feedback_text = st.text_area("Provide feedback or suggest new items:")
+    submit_feedback = st.form_submit_button("Submit Feedback")
+    if submit_feedback and user_input:
+        save_user_feedback(user_input, {"feedback": feedback_df})
+        st.success("Thanks for your feedback!")
 
-    except KeyError:
-        st.error("User ID not found. Please enter a valid User ID.")
+# Display feedback (optional, for debugging or transparency)
+feedback_df = get_user_feedback(user_id='test_user')
+if feedback_df is not None and not feedback_df.empty:
+    st.subheader("User Feedback")
+    st.write(feedback_df)
