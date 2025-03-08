@@ -33,7 +33,7 @@ if feedback_history:
         st.chat_message("user").write(feedback)
 
 # Generate recommendations based on feedback
-recommendations = recommend_items(user_id)
+recommendations = recommend_items(user_id, user_item_matrix, similarity_df)
 st.write("Recommended items:", recommendations)
 
 evaluation = evaluate_recommendations(recommendations)
