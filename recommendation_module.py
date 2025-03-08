@@ -15,6 +15,17 @@ def recommend_items(user_id, user_item_matrix, similarity_df, top_n=2):
         for item in sim_user_items:
             if item not in user_items:
                 recommendations[item] = recommendations.get(item, 0) + similarity_df.loc[user_id, sim_user]
+                
+def evaluate_recommendations(recommendations):
+    """
+    Evaluate recommendations based on some criteria.
+    This is just a placeholder. You should replace it with your logic.
+    """
+    if not recommendations:
+        return "No recommendations generated."
+    # Simple placeholder evaluation
+    return f"Generated {len(recommendations)} recommendations. Evaluation complete."
+
 
     recommended_items = sorted(recommendations.items(), key=lambda x: x[1], reverse=True)[:top_n]
     return [item[0] for item in recommended_items]
