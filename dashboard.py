@@ -4,33 +4,35 @@ from recommendation_module import recommend_items
 from firebase_module import initialize_firebase, get_user_feedback, save_user_feedback
 from data_loader import load_data
 
-# Initialize Firebase at startup
+# Initialize Firebase
 initialize_firebase()
 
-# Load data (cached)
+# Load Data
 user_item_matrix, similarity_df = load_data()
 
 st.title("🤖 AI Recommendation Assistant")
 
 # User input
-user_input = st.text_input("Enter your User ID:")
+user_input = st.text_input("Enter your user ID:")
 
 if user_input := user_input.strip():
     try:
-        # Get recommendations
+        # Fetch recommendations based on provided user_id
         recommendations = recommend_items(
             user_id=user_input,
             user_item_matrix=user_item_matrix,
             similarity_df=similarity_df
         )
-        
+
         st.write(f"I recommend the following items: {', '.join(recommendations)}")
 
-        # Save feedback (optional)
-        feedback = {"recommendations": recommendations}
-        save_user_feedback(user_id=user_input, feedback_data=feedback)
+        # Save feedback to Firebase
+        feedback = {
+            "recommended_items": recommendations
+        }
+        save_user_feedback(user_input, feedback_data=feedback)
 
-        # Retrieve and display previous user feedback (optional)
+        # Displaying user feedback
         feedback_data = get_user_feedback(user_input)
         if feedback_data:
             feedback_df = pd.DataFrame([feedback_data])
