@@ -31,7 +31,7 @@ with st.expander("Provide Feedback"):
         st.success("Thanks for your feedback!")
 
 # Display feedback (optional, for debugging or transparency)
-feedback_df = get_user_feedback()
+feedback_df = get_user_feedback(user_id='test_user')
 if not feedback_df.empty:
     st.subheader("User Feedback")
     st.write(feedback_df)
