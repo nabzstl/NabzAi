@@ -1,5 +1,5 @@
-import pandas as pd
 import streamlit as st
+import pandas as pd
 from recommendation_module import compute_user_similarity
 
 @st.cache_data

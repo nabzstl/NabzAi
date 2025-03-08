@@ -3,41 +3,51 @@ import pandas as pd
 from recommendation_module import recommend_items
 from firebase_module import initialize_firebase, get_user_feedback, save_user_feedback
 from data_loader import load_data
+from datetime import datetime
 
 # Initialize Firebase
 initialize_firebase()
 
-# Load data (cached for efficiency)
+# Load Data
 user_item_matrix, similarity_df = load_data()
 
 st.title("🤖 AI Recommendation Assistant")
 
-# Initialize session state for chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# Chatbox for interaction
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = []
 
-# Display previous chat history
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+def display_chat():
+    for message, is_user in st.session_state.chat_history:
+        if is_user:
+            st.markdown(f"👤 **You:** {message}")
+        else:
+            st.markdown(f"🤖 **Assistant:** {message}")
 
-# Chat input
-prompt = st.chat_input("How can I assist you today?")
-if prompt:
-    # Append user message
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+user_input = st.chat_input("Say something...")
 
-    # Generate AI response (simple placeholder for now)
-    with st.chat_message("assistant"):
-        user_id = "user_demo"  # For demo purposes, ideally dynamic based on login/session
-        recommendations = recommend_items(user_id, user_item_matrix, similarity_df)
-        ai_response = f"I recommend the following items: **{', '.join(recommendations)}**"
-        st.markdown(ai_response)
+if user_input:
+    st.session_state.setdefault('chat_history', []).append((True, user_input))
+    
+    user_id = user_input.strip()
 
-    # Save AI response to chat history
-    st.session_state.messages.append({"role": "assistant", "content": ai_response})
+    recommendations = recommend_items(user_input, user_item_matrix, similarity_df)
+    
+    response = "Here are recommendations based on your interests: " + ", ".join(recommendations)
+    
+    st.session_state['chat_history'].append((False, response))
 
-    # Optionally, save feedback to Firebase
-    save_user_feedback(user_id, prompt)
+    # save feedback to Firebase
+    feedback = {
+        "user_input": user_input,
+        "recommendations": recommendations,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    save_user_feedback(user_input, feedback)
+
+# Display conversation
+for is_user, message in st.session_state.get('chat_history', []):
+    if is_user:
+        st.markdown(f"👤 **You:** {message}")
+    else:
+        st.markdown(f"🤖 **Assistant:** {message}")
