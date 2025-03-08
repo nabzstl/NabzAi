@@ -1,3 +1,6 @@
-user_id,item1,item2,item3
-user123,5,3,0
-user456,1,4,5
+user_id,item_id,rating
+user1,item1,5
+user1,itemA,4
+user1,itemB,3
+user2,itemA,5
+user2,itemB,2
